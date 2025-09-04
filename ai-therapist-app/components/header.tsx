@@ -1,12 +1,20 @@
+'use client'
+
 import Link from "next/link";
-import { AudioWaveform, Origami } from "lucide-react";
+import { AudioWaveform, Menu, Origami, X } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import SignInButton from "./auth/SignInButton";
+import { useState } from "react";
+import { Button } from "./ui/button";
+
 
 export default function Header() {
     const navItems = [
         { label: "Features", href: "/features" },
-        { label: "About Mantra2.0", href: "/about" },
-        
+        { label: "About Mantra2.0", href: "/about" },   
     ];
+
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="w-full fixed top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -38,10 +46,32 @@ export default function Header() {
                   </Link>
                 ))}
               </nav>
-            </div>
-
+               <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <SignInButton />
+                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                  {isMenuOpen ? (<X className="h-5 w-5" />) : (<Menu className="h-5 w-5" />)}
+                </Button>
+               </div>
+            </div>     
           </div>
         </header>
+        {isMenuOpen && (
+          <div className="md:hidden border-t border-primary/10">
+            <nav className="flex flex-col space-y-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-primary/5 rounded-md transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </div>   
+        )}
       </div>
     </div>
   );

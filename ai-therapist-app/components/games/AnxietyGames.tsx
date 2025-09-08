@@ -17,10 +17,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { BreathingGame } from "./breathing-game";
-import { ZenGarden } from "./zen-garden";
-import { ForestGame } from "./forest-game";
-import { OceanWaves } from "./ocean-waves";
+// import { BreathingGame } from "./breathing-game";
+// import { ZenGarden } from "./zen-garden";
+// import { ForestGame } from "./forest-game";
+// import { OceanWaves } from "./ocean-waves";
 
 const games = [
   {
@@ -88,16 +88,16 @@ export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
 
   const renderGame = () => {
     switch (selectedGame) {
-      case "breathing":
-        return <BreathingGame />;
-      case "garden":
-        return <ZenGarden />;
-      case "forest":
-        return <ForestGame />;
-      case "waves":
-        return <OceanWaves />;
-      default:
-        return null;
+    //   case "breathing":
+    //     return <BreathingGame />;
+    //   case "garden":
+    //     return <ZenGarden />;
+    //   case "forest":
+    //     return <ForestGame />;
+    //   case "waves":
+    //     return <OceanWaves />;
+    //   default:
+    //     return null;
     }
   };
 

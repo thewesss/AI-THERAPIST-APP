@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { AnxietyGames } from "@/components/games/AnxietyGames";
 
 export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -32,7 +33,7 @@ export default function DashboardPage() {
     const wellnessStats = [
     {
       title: "Mood Score",
-      value: dailyStats.moodScore ? `${dailyStats.moodScore}%` : "No data",
+    //   value: dailyStats.moodScore ? `${dailyStats.moodScore}%` : "No data",
       icon: Brain,
       color: "text-purple-500",
       bgColor: "bg-purple-500/10",
@@ -48,7 +49,7 @@ export default function DashboardPage() {
     },
     {
       title: "Therapy Sessions",
-      value: `${dailyStats.mindfulnessCount} sessions`,
+    //   value: `${dailyStats.mindfulnessCount} sessions`,
       icon: Heart,
       color: "text-rose-500",
       bgColor: "bg-rose-500/10",
@@ -56,7 +57,7 @@ export default function DashboardPage() {
     },
     {
       title: "Total Activities",
-      value: dailyStats.totalActivities.toString(),
+    //   value: dailyStats.totalActivities.toString(),
       icon: Activity,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10",
@@ -188,7 +189,7 @@ export default function DashboardPage() {
                         <Button
                             variant="ghost"
                             size="icon"
-                            onClick={fetchDailyStats}
+                            // onClick={fetchDailyStats}
                             className="h-8 w-8"
                         >
                             <Loader2 className={cn("h-4 w-4", "animate-spin")} />
@@ -217,14 +218,14 @@ export default function DashboardPage() {
                         ))}
                     </div>
                     <div className="mt-4 text-xs text-muted-foreground text-right">
-                      Last updated: {format(dailyStats.lastUpdated, "h:mm a")}
+                      {/* Last updated: {format(dailyStats.lastUpdated, "h:mm a")} */}
                     </div>
                 </CardContent>
               </Card>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-3 space-y-6">
-                
+                <AnxietyGames />
               </div>
             </div>
          </div>

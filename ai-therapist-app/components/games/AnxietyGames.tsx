@@ -133,6 +133,7 @@ export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
                         className={`p-3 rounded-xl ${game.bgColor} ${game.color}`}
                       >
                         <game.icon className="h-6 w-6" />
+                        {/* gamesuuu */}
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold">{game.title}</h4>

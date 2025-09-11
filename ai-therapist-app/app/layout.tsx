@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/Header";
 import { Providers } from "@/components/Providers";
 import { Footer } from "@/components/Footer";
+import { SessionProvider } from "@/lib/contexts/session-context"; // <-- import
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,16 +27,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en-US" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
+        <SessionProvider> {/* ✅ wrap app in session context */}
+          <Providers>
             <Header />
             {children}
             <Footer />
-        </Providers>
+          </Providers>
+        </SessionProvider>
       </body>
     </html>
   );
 }
+
+

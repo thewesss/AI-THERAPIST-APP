@@ -17,8 +17,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-// import { BreathingGame } from "./breathing-game";
-// import { ZenGarden } from "./zen-garden";
+import { BreathingGame } from "./BreathingGame";
+import { ZenGarden } from "./ZenGarden";
+import { ForestGame } from "./ForestGame";
+import { OceanWaves } from "./OceanWaves";
+
 // import { ForestGame } from "./forest-game";
 // import { OceanWaves } from "./ocean-waves";
 
@@ -88,16 +91,16 @@ export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
 
   const renderGame = () => {
     switch (selectedGame) {
-    //   case "breathing":
-    //     return <BreathingGame />;
-    //   case "garden":
-    //     return <ZenGarden />;
-    //   case "forest":
-    //     return <ForestGame />;
-    //   case "waves":
-    //     return <OceanWaves />;
-    //   default:
-    //     return null;
+      case "breathing":
+        return <BreathingGame />;
+      case "garden":
+        return <ZenGarden />;
+      case "forest":
+        return <ForestGame />;
+      case "waves":
+        return <OceanWaves />;
+      default:
+        return null;
     }
   };
 
@@ -133,7 +136,6 @@ export const AnxietyGames = ({ onGamePlayed }: AnxietyGamesProps) => {
                         className={`p-3 rounded-xl ${game.bgColor} ${game.color}`}
                       >
                         <game.icon className="h-6 w-6" />
-                        {/* gamesuuu */}
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold">{game.title}</h4>

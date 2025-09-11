@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Activity, ArrowRight, Brain, BrainCircuit, Heart, Loader2, MessageSquare, Sparkles, Trophy } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -17,10 +18,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { AnxietyGames } from "@/components/games/AnxietyGames";
+import { MoodForm } from "@/components/mood/MoodForm";
+import { ActivityLogger } from "@/components/activities/ActivityLogger";
 
 export default function DashboardPage() {
     const [currentTime, setCurrentTime] = useState(new Date());
     const [showMoodModal, setShowMoodModal] = useState(false);
+    const [isSavingMood, setIsSavingMood] = useState(false);
+    const [showActivityLogger, setShowActivityLogger] = useState(false);
+
+    const router = useRouter();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -29,6 +36,21 @@ export default function DashboardPage() {
         return () => clearInterval(timer);
     }, []);
 
+      const handleMoodSubmit = async (data: { moodScore: number }) => {
+        setIsSavingMood(true);
+        try {
+          // await saveMoodData({
+          //   userId: "default-user",
+          //   mood: data.moodScore,
+          //   note: "",
+          // });
+          setShowMoodModal(false);
+        } catch (error) {
+          console.error("Error saving mood:", error);
+        } finally {
+          setIsSavingMood(false);
+        }
+      };
 
     const wellnessStats = [
     {
@@ -64,6 +86,14 @@ export default function DashboardPage() {
       description: "Planned for today",
     },
   ];
+    const handleAICheckIn = () => {
+     setShowActivityLogger(true);
+    }
+
+    const handleStartTherapy = () => {
+      // Navigate to therapy session page
+      router.push("/therapy/new");
+    }
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -79,8 +109,9 @@ export default function DashboardPage() {
                     Welcome Back
                 </h1>
                 <p className="text-muted-foreground text-sm">
-                    {currentTime.toLocaleTimeString("en-US", {weekday: "long", month: "long", day: "numeric"})}
+                  {format(new Date(), "EEEE, MMMM d, yyyy")}
                 </p>
+
             </div>
           </motion.div>
          </div>
@@ -110,7 +141,7 @@ export default function DashboardPage() {
                                     "bg-gradient-to-r from-primary/90 to-primary hover:from-primary hover:to-primary/90",
                                     "transition-all duration-200 group-hover:translate-y-[-2px]"
                                 )}
-                                // onClick={handleStartTherapy}
+                                onClick={handleStartTherapy}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -138,7 +169,7 @@ export default function DashboardPage() {
                                         "justify-center items-center text-center",
                                         "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                        // onClick={() => setShowMoodModal(true)}
+                                        onClick={() => setShowMoodModal(true)}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-rose-500/10 flex items-center justify-center mb-2">
                                           <Heart className="w-5 h-5 text-rose-500" />
@@ -158,7 +189,7 @@ export default function DashboardPage() {
                                         "justify-center items-center text-center",
                                         "transition-all duration-200 group-hover:translate-y-[-2px]"
                                         )}
-                                        // onClick={handleAICheckIn}
+                                        onClick={handleAICheckIn}
                                     >
                                         <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center mb-2">
                                           <BrainCircuit className="w-5 h-5 text-blue-500" />
@@ -238,9 +269,14 @@ export default function DashboardPage() {
                 Move the slider to track your current mood
                 </DialogDescription>
             </DialogHeader>
-            {/* <MoodForm onSuccess={() => setShowMoodModal(false)} /> */}
+            <MoodForm onSubmit={handleMoodSubmit} isLoading={isSavingMood} />
             </DialogContent>
         </Dialog>
+        <ActivityLogger
+          open={showActivityLogger}
+          onOpenChange={setShowActivityLogger}
+          // onActivityLogged={loadActivities}
+        />
     </div>
   )
 }

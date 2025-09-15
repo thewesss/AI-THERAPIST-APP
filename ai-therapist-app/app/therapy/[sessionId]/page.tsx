@@ -377,7 +377,7 @@ export default function TherapyPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleSubmit(e);
+                      // handleSubmit(e);
                     }
                   }}
                 />
@@ -396,7 +396,7 @@ export default function TherapyPage() {
                   disabled={isTyping || isChatPaused || !message.trim()}
                   onClick={(e) => {
                     e.preventDefault();
-                    handleSubmit(e);
+                    // handleSubmit(e);
                   }}
                 >
                   <Send className="w-4 h-4" />

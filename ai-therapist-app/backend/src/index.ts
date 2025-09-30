@@ -1,22 +1,50 @@
 import express, { Request, Response } from "express";
 import { serve } from "inngest/express";
-import { inngest } from "./inngest/index";
+import { inngest } from "./inngest/client";
 import { functions as inngestFunctions } from "./inngest/functions";
 import { logger } from "./utils/logger";
 import { connectDB } from "./utils/db";
 import dotenv from "dotenv";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import authRoutes from "./routes/auth"
+import { errorHandler } from "./middleware/errorHandler";
+import chatRouter from "./routes/chat";
+import moodRouter from "./routes/mood";
+import activityRouter from "./routes/activity";
+import 'dotenv/config';
 
 dotenv.config(); // Load environment variables from .env file
 
+if (!process.env.GEMINI_API_KEY) {
+  throw new Error('GEMINI_API_KEY is not set in .env');
+}
+
+
 // Create an Express application
 const app = express();
-const PORT = 3001;
+
+
+// Middleware setup
+app.use(cors())// Allow cross-origin requests
+app.use(helmet())// Secure HTTP headers
+app.use(morgan("dev"))// HTTP request logging
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
+// routes
+app.use("/auth", authRoutes);
+app.use("/chat", chatRouter);
+app.use("/api/mood", moodRouter);
+app.use("/api/activity", activityRouter);
+
 // Inngest endpoint to handle events
 app.use("/api/inngest", serve({ client: inngest, functions: inngestFunctions }));
+
+//error handling middleware
+app.use(errorHandler);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from the backend!");

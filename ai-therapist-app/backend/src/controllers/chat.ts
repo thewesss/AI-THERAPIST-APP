@@ -273,3 +273,23 @@ export const getChatHistory = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching chat history" });
   }
 };
+
+export const getAllChatSessions = async (req: Request, res: Response) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const userId = new Types.ObjectId(req.user.id);
+
+    const sessions = await ChatSession.find({ userId }).sort({ startTime: -1 });
+
+    res.json(sessions);
+  } catch (error) {
+    logger.error("Error fetching all chat sessions:", error);
+    res.status(500).json({
+      message: "Error fetching all chat sessions",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+};

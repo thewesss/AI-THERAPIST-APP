@@ -3,12 +3,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// Define the User interface
 interface User {
   _id: string;
   name: string;
   email: string;
 }
-
+// Define the context type
 interface SessionContextType {
   user: User | null;
   loading: boolean;

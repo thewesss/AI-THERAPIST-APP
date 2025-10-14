@@ -1,37 +1,67 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Container } from "@/components/ui/container";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Mail, User, Lock } from "lucide-react";
-// import { registerUser } from "@/lib/api/auth";
+import Link from "next/link";
+import { registerUser } from "@/lib/api/auth";
+
+//  Define schema-based validation
+const signupSchema = z
+  .object({
+    name: z.string().min(2, "Name must be at least 2 characters long"),
+    email: z
+      .string()
+      .email("Please enter a valid email address (must contain @)"),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters long")
+      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+      .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+      .regex(/\d/, "Password must contain at least one number")
+      .regex(
+        /[@$!%*?&#]/,
+        "Password must contain at least one special character"
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "Passwords do not match",
+  });
+
+type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
+  const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+  });
+
+  // ✅ Use validated data from React Hook Form
+  const onSubmit = async (data: SignupFormData) => {
+    setServerError("");
     setLoading(true);
     try {
-      await registerUser(name, email, password);
+      await registerUser(data.name, data.email, data.password);
       router.push("/login");
     } catch (err: any) {
-      setError(err.message || "Signup failed. Please try again.");
+      setServerError(err.message || "Signup failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,8 +79,10 @@ export default function SignupPage() {
               Create your account to start your journey with Mantra.
             </p>
           </div>
-          <form className="space-y-6" onSubmit={handleSubmit}>
+
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-3">
+              {/* Name */}
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
                   <label
@@ -66,12 +98,17 @@ export default function SignupPage() {
                       type="text"
                       placeholder="Enter your name"
                       className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      required
+                      {...register("name")}
                     />
                   </div>
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
+
+                {/* Email */}
                 <div className="flex-1">
                   <label
                     htmlFor="email"
@@ -86,13 +123,18 @@ export default function SignupPage() {
                       type="email"
                       placeholder="Enter your email"
                       className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
+                      {...register("email")}
                     />
                   </div>
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.email.message}
+                    </p>
+                  )}
                 </div>
               </div>
+
+              {/* Password */}
               <div>
                 <label
                   htmlFor="password"
@@ -107,12 +149,17 @@ export default function SignupPage() {
                     type="password"
                     placeholder="Enter your password"
                     className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
+                    {...register("password")}
                   />
                 </div>
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
+
+              {/* Confirm Password */}
               <div>
                 <label
                   htmlFor="confirmPassword"
@@ -127,18 +174,24 @@ export default function SignupPage() {
                     type="password"
                     placeholder="Confirm your password"
                     className="pl-12 py-2 text-base rounded-xl bg-card bg-opacity-80 border border-primary focus:outline-none focus:ring-2 focus:ring-primary text-white placeholder:text-muted-foreground"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
+                    {...register("confirmPassword")}
                   />
                 </div>
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
               </div>
             </div>
-            {error && (
+
+            {/* Global / Server Error */}
+            {(serverError || errors.root) && (
               <p className="text-red-500 text-base text-center font-medium">
-                {error}
+                {serverError || errors.root?.message}
               </p>
             )}
+
             <Button
               className="w-full py-2 text-base rounded-xl font-bold bg-gradient-to-r from-primary to-primary/80 shadow-md hover:from-primary/80 hover:to-primary"
               size="lg"
@@ -148,6 +201,7 @@ export default function SignupPage() {
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
           </form>
+
           <div className="my-6 border-t border-primary/10" />
           <p className="text-base text-center text-muted-foreground">
             Already have an account?{" "}

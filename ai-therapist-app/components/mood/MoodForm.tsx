@@ -16,8 +16,9 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
   const [moodScore, setMoodScore] = useState(50);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { user, isAuthenticated, loading } = useSession();
   const router = useRouter();
+    const { user, isAuthenticated, loading } = useSession();
+  
 
   const emotions = [
     { value: 0, label: "😔", description: "Very Low" },
@@ -44,7 +45,7 @@ export function MoodForm({ onSuccess }: MoodFormProps) {
       router.push("/login");
       return;
     }
-
+// Submit mood score
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");

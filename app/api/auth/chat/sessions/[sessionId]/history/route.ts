@@ -1,54 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Ensure the backend API URL is configured, with a fallback for local development.
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
+const BACKEND_API_URL =
+  process.env.BACKEND_API_URL ||
+  "https://ai-therapist-agent-backend.onrender.com";
 
-/**
- * POST handler for sending a new message to a chat session.
- * @param req - The incoming Next.js request object.
- * @param context - An object containing the route parameters.
- * @param context.params - The dynamic route parameters, containing the sessionId.
- */
-export async function POST(
+export async function GET(
   req: NextRequest,
-  context: { params: { sessionId: string } }
+  { params }: { params: { sessionId: string } }
 ) {
-  // Directly get sessionId from the context params, which is the standard Next.js way.
-  // This is more reliable than parsing the URL manually.
-  const { sessionId } = context.params;
-
-  if (!sessionId) {
-    return NextResponse.json({ error: "Missing sessionId" }, { status: 400 });
-  }
-
   try {
-    const body = await req.json();
+    const { sessionId } = params;
+    console.log(`Getting chat history for session ${sessionId}`);
 
-    // Forward the request to the backend service to post the new message.
     const response = await fetch(
-      `${BACKEND_API_URL}/chat/sessions/${sessionId}/messages`,
+      `${BACKEND_API_URL}/chat/sessions/${sessionId}/history`,
       {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       }
     );
 
-    // If the backend responds with an error, forward that error.
     if (!response.ok) {
-      const errorData = await response.json();
+      const error = await response.json();
+      console.error("Failed to get chat history:", error);
       return NextResponse.json(
-        { error: errorData.error || "Failed to send message" },
+        { error: error.error || "Failed to get chat history" },
         { status: response.status }
       );
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    console.log("Chat history retrieved successfully:", data);
+
+    // Format the response to match the frontend's expected format
+    const formattedMessages = data.map((msg: any) => ({
+      role: msg.role,
+      content: msg.content,
+      timestamp: msg.timestamp,
+    }));
+
+    return NextResponse.json(formattedMessages);
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("Error getting chat history:", error);
     return NextResponse.json(
-      { error: "An internal server error occurred" },
+      { error: "Failed to get chat history" },
       { status: 500 }
     );
   }

@@ -4,14 +4,18 @@ const BACKEND_API_URL =
   process.env.BACKEND_API_URL ||
   "https://ai-therapist-agent-backend.onrender.com";
 
+// Define an explicit type for the route's context parameter.
+// This can help resolve complex type inference issues during the build.
+type RouteContext = {
+  params: {
+    sessionId: string;
+  };
+};
+
 /**
  * GET handler for fetching chat history for a specific session.
- * This is the only function that should be in this file.
  */
-export async function GET(
-  req: NextRequest,
-  context: { params: { sessionId: string } }
-) {
+export async function GET(req: NextRequest, context: RouteContext) {
   try {
     const { sessionId } = context.params;
     console.log(`Getting chat history for session ${sessionId}`);
@@ -38,7 +42,6 @@ export async function GET(
     const data = await response.json();
     console.log("Chat history retrieved successfully:", data);
 
-    // Format the response to match the frontend's expected format
     const formattedMessages = data.map((msg: any) => ({
       role: msg.role,
       content: msg.content,
@@ -54,3 +57,4 @@ export async function GET(
     );
   }
 }
+

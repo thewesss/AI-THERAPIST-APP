@@ -1,14 +1,22 @@
+// app/api/auth/chat/sessions/[sessionId]/history/route.ts
 import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
 
-// Fetch chat history
+interface ChatMessage {
+  role: string;
+  content: string;
+  timestamp: string;
+}
+
+// Fix typing for App Router GET handler
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sessionId: string } }
+  context: { params: { sessionId: string } }
 ) {
+  const { sessionId } = context.params;
+
   try {
-    const { sessionId } = params;
     console.log(`Getting chat history for session ${sessionId}`);
 
     const response = await fetch(
@@ -20,21 +28,19 @@ export async function GET(
         },
       }
     );
-// if the response is not ok
+
     if (!response.ok) {
-      const error = await response.json();
-      console.error("Failed to get chat history:", error);
+      const errorData = await response.json();
+      console.error("Failed to get chat history:", errorData);
       return NextResponse.json(
-        { error: error.error || "Failed to get chat history" },
+        { error: errorData.error || "Failed to get chat history" },
         { status: response.status }
       );
     }
 
-    const data = await response.json();
-    console.log("Chat history retrieved successfully:", data);
+    const data: ChatMessage[] = await response.json();
 
-    // Format the response to match the frontend's expected format
-    const formattedMessages = data.map((msg: any) => ({
+    const formattedMessages = data.map((msg) => ({
       role: msg.role,
       content: msg.content,
       timestamp: msg.timestamp,

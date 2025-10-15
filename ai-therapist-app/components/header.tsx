@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import SignInButton from "./auth/SignInButton";
-import { useSession } from "@/lib/contexts/session-context";
+import { useSession } from "@/lib/contexts/session-context"; 
 
 export default function Header() {
   const { isAuthenticated, logout, user } = useSession();

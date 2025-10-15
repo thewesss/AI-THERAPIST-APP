@@ -35,11 +35,11 @@ import { cn } from "@/lib/utils";
 import { MoodForm } from "@/components/mood/MoodForm"; 
 import { AnxietyGames } from "@/components/games/AnxietyGames"; 
 
-// import {
-//   getUserActivities,
-//   saveMoodData,
-//   logActivity,
-// } from "@/lib/static-dashboard-data";
+import {
+  getUserActivities,
+  saveMoodData,
+  logActivity,
+} from "@/lib/static-dashboard-data";
 
 import {
   Dialog,
@@ -60,6 +60,7 @@ import {
 import { ActivityLogger } from "@/components/activities/ActivityLogger"; 
 import { useSession } from "@/lib/contexts/session-context";
 import { getAllChatSessions } from "@/lib/api/chat";
+import { API_BASE, fetchTodayActivities } from "@/lib/api/activity";
 
 // type definition
 type ActivityLevel = "none" | "low" | "medium" | "high";
@@ -99,7 +100,7 @@ interface DailyStats {
   lastUpdated: Date;
 }
 
-// Updates the calculateDailyStats function to show correct stats
+// Updates the calculate DailyStats function to show correct stats
 const calculateDailyStats = (activities: Activity[]): DailyStats => {
   const today = startOfDay(new Date());
   const todaysActivities = activities.filter((activity) =>
@@ -368,18 +369,15 @@ export default function Dashboard() {
   // Add function to fetch daily stats
   const fetchDailyStats = useCallback(async () => {
     try {
-      // Fetch therapy sessions using the chat API
       const sessions = await getAllChatSessions();
+      const activitiesData = await fetchTodayActivities();
 
-      // Fetch today's activities
-      const activitiesResponse = await fetch("/api/activities/today");
-      if (!activitiesResponse.ok) throw new Error("Failed to fetch activities");
-      const activities = await activitiesResponse.json();
+      const activities = activitiesData.data;
 
-      // Calculate mood score from activities
       const moodEntries = activities.filter(
         (a: Activity) => a.type === "mood" && a.moodScore !== null
       );
+
       const averageMood =
         moodEntries.length > 0
           ? Math.round(
@@ -393,7 +391,7 @@ export default function Dashboard() {
       setDailyStats({
         moodScore: averageMood,
         completionRate: 100,
-        mindfulnessCount: sessions.length, // Total number of therapy sessions
+        mindfulnessCount: sessions.length,
         totalActivities: activities.length,
         lastUpdated: new Date(),
       });
@@ -401,7 +399,6 @@ export default function Dashboard() {
       console.error("Error fetching daily stats:", error);
     }
   }, []);
-
   // Fetch stats on mount and every 5 minutes
   useEffect(() => {
     fetchDailyStats();

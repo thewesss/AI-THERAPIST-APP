@@ -1,21 +1,22 @@
+import 'dotenv/config';       // MUST be first
+import dotenv from "dotenv";   
+dotenv.config();               //  ensures env is loaded
+
 import express, { Request, Response } from "express";
 import { serve } from "inngest/express";
-import { inngest } from "./inngest/client";
+import { inngest } from "./inngest/client"; // ← now env is available
 import { functions as inngestFunctions } from "./inngest/functions";
 import { logger } from "./utils/logger";
 import { connectDB } from "./utils/db";
-import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import authRoutes from "./routes/auth"
+import authRoutes from "./routes/auth";
 import { errorHandler } from "./middleware/errorHandler";
 import chatRouter from "./routes/chat";
 import moodRouter from "./routes/mood";
 import activityRouter from "./routes/activity";
-import 'dotenv/config';
 
-dotenv.config(); // Load environment variables from .env file
 
 if (!process.env.GEMINI_API_KEY) {
   throw new Error('GEMINI_API_KEY is not set in .env');

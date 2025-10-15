@@ -1,5 +1,5 @@
 // app/api/auth/chat/sessions/[sessionId]/history/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:3001";
 
@@ -9,12 +9,12 @@ interface ChatMessage {
   timestamp: string;
 }
 
-// Fix typing for App Router GET handler
+// Use Record<string, string> for params
 export async function GET(
-  req: NextRequest,
-  context: { params: { sessionId: string } }
+  req: Request,
+  { params }: { params: Record<string, string> }
 ) {
-  const { sessionId } = context.params;
+  const sessionId = params.sessionId;
 
   try {
     console.log(`Getting chat history for session ${sessionId}`);
@@ -23,9 +23,7 @@ export async function GET(
       `${BACKEND_API_URL}/chat/sessions/${sessionId}/history`,
       {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       }
     );
 
@@ -55,3 +53,5 @@ export async function GET(
     );
   }
 }
+
+

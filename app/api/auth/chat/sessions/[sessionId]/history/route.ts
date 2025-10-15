@@ -4,12 +4,16 @@ const BACKEND_API_URL =
   process.env.BACKEND_API_URL ||
   "https://ai-therapist-agent-backend.onrender.com";
 
+/**
+ * GET handler for fetching chat history for a specific session.
+ * This is the only function that should be in this file.
+ */
 export async function GET(
   req: NextRequest,
-  { params }: { params: { sessionId: string } }
+  context: { params: { sessionId: string } }
 ) {
   try {
-    const { sessionId } = params;
+    const { sessionId } = context.params;
     console.log(`Getting chat history for session ${sessionId}`);
 
     const response = await fetch(
@@ -50,6 +54,3 @@ export async function GET(
     );
   }
 }
-
-
-

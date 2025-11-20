@@ -6,8 +6,7 @@ interface ActivityEntry {
 }
 
 export const API_BASE =
-  process.env.BACKEND_API_URL ||
-  "http://localhost:3001";
+  process.env.BACKEND_API_URL || "https://ai-therapist-app-backend-1.onrender.com";
 
 export async function logActivity(
   data: ActivityEntry

@@ -426,7 +426,7 @@ export default function TherapyPage() {
 
   return (
     <div className="relative max-w-7xl mx-auto px-4">
-      <div className="flex h-[calc(100vh-4rem)] mt-20 gap-6">
+      <div className="flex h-[calc(100vh-6rem)] mt-20 gap-6">
         {/* Sidebar with chat history */}
         <div className="w-80 flex flex-col border-r bg-muted/30">
           <div className="p-4 border-b">

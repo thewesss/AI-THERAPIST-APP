@@ -22,8 +22,6 @@ import { ZenGarden } from "./ZenGarden";
 import { ForestGame } from "./ForestGame";
 import { OceanWaves } from "./OceanWaves";
 
-// import { ForestGame } from "./forest-game";
-// import { OceanWaves } from "./ocean-waves";
 
 const games = [
   {

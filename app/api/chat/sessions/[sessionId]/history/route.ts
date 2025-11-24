@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const BACKEND_API_URL =
-  process.env.BACKEND_API_URL ||
-  "https://ai-therapist-agent-backend.onrender.com";
+  process.env.BACKEND_API_URL || "https://ai-therapist-app-backend-1.onrender.com";
 
 // Define an explicit type for the route's context parameter.
 // This can help resolve complex type inference issues during the build.

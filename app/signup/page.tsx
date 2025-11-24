@@ -12,7 +12,9 @@ import { Container } from "@/components/ui/container";
 import { Input } from "@/components/ui/input";
 import { Mail, User, Lock } from "lucide-react";
 import Link from "next/link";
-import { registerUser } from "@/lib/api/auth";
+// New imports for auto-login
+import { registerUser, loginUser } from "@/lib/api/auth";
+import { useSession } from "@/lib/contexts/session-context";
 
 //  Define schema-based validation
 const signupSchema = z
@@ -42,6 +44,7 @@ type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  const { checkSession } = useSession(); // Hook to update session state
   const [serverError, setServerError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -53,13 +56,27 @@ export default function SignupPage() {
     resolver: zodResolver(signupSchema),
   });
 
-  // ✅ Use validated data from React Hook Form
   const onSubmit = async (data: SignupFormData) => {
     setServerError("");
     setLoading(true);
     try {
+      // 1. Register
       await registerUser(data.name, data.email, data.password);
-      router.push("/login");
+
+      // 2. Auto-Login
+      const loginResponse = await loginUser(data.email, data.password);
+
+      if (loginResponse.token) {
+        localStorage.setItem("token", loginResponse.token);
+        
+        // 3. Update Global State
+        await checkSession();
+        
+        // 4. Redirect
+        router.push("/dashboard");
+      } else {
+        router.push("/login");
+      }
     } catch (err: any) {
       setServerError(err.message || "Signup failed. Please try again.");
     } finally {
@@ -198,7 +215,7 @@ export default function SignupPage() {
               type="submit"
               disabled={loading}
             >
-              {loading ? "Signing up..." : "Sign Up"}
+              {loading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
 

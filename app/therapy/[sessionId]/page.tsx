@@ -13,9 +13,6 @@ import {
   MessageSquare,
   Trophy,
   X,
-  Star,
-  Clock,
-  Smile,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,8 +39,8 @@ import {
 } from "@/lib/api/chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatDistanceToNow } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 
+// Types needed for the component
 interface SuggestedQuestion {
   id: string;
   text: string;
@@ -55,15 +52,6 @@ interface StressPrompt {
     type: "breathing" | "garden" | "forest" | "waves";
     title: string;
     description: string;
-  };
-}
-
-interface ApiResponse {
-  message: string;
-  metadata: {
-    technique: string;
-    goal: string;
-    progress: any[];
   };
 }
 
@@ -99,7 +87,7 @@ export default function TherapyPage() {
   const [mounted, setMounted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Restored Game/Stress State
+  // Game & Stress State
   const [stressPrompt, setStressPrompt] = useState<StressPrompt | null>(null);
   const [showActivity, setShowActivity] = useState(false);
   const [isChatPaused, setIsChatPaused] = useState(false);
@@ -117,7 +105,6 @@ export default function TherapyPage() {
       const newSessionId = await createChatSession();
       console.log("New session created:", newSessionId);
 
-      // Update sessions list immediately
       const newSession: ChatSession = {
         sessionId: newSessionId,
         messages: [],
@@ -125,15 +112,11 @@ export default function TherapyPage() {
         updatedAt: new Date(),
       };
 
-      // Update all state in one go
       setSessions((prev) => [newSession, ...prev]);
       setSessionId(newSessionId);
       setMessages([]);
-      setStressPrompt(null); // Reset stress prompt on new session
-
-      // Update URL without refresh
+      setStressPrompt(null);
       window.history.pushState({}, "", `/therapy/${newSessionId}`);
-
       setIsLoading(false);
     } catch (error) {
       console.error("Failed to create new session:", error);
@@ -141,18 +124,15 @@ export default function TherapyPage() {
     }
   };
 
-  // Initialize chat session and load history
   useEffect(() => {
     const initChat = async () => {
       try {
         setIsLoading(true);
         if (!sessionId || sessionId === "new") {
-          console.log("Creating new chat session...");
           const newSessionId = await createChatSession();
           setSessionId(newSessionId);
           window.history.pushState({}, "", `/therapy/${newSessionId}`);
         } else {
-          console.log("Loading existing chat session:", sessionId);
           try {
             const history = await getChatHistory(sessionId);
             if (Array.isArray(history)) {
@@ -174,8 +154,7 @@ export default function TherapyPage() {
         setMessages([
           {
             role: "assistant",
-            content:
-              "I apologize, but I'm having trouble loading the chat session. Please try refreshing the page.",
+            content: "I apologize, but I'm having trouble loading the chat session.",
             timestamp: new Date(),
           },
         ]);
@@ -187,7 +166,6 @@ export default function TherapyPage() {
     initChat();
   }, [sessionId]);
 
-  // Load all chat sessions
   useEffect(() => {
     const loadSessions = async () => {
       try {
@@ -200,7 +178,6 @@ export default function TherapyPage() {
     loadSessions();
   }, [messages]);
 
-  // Scroll to the bottom of the chat
   const scrollToBottom = () => {
     if (messagesEndRef.current) {
       setTimeout(() => {
@@ -213,21 +190,13 @@ export default function TherapyPage() {
     if (!isTyping) {
       scrollToBottom();
     }
-  }, [messages, isTyping, stressPrompt]); // Added stressPrompt dependency
+  }, [messages, isTyping, stressPrompt]);
 
-  // Restored: Stress Detection Logic
+  // Stress Detection Logic
   const detectStressSignals = (message: string): StressPrompt | null => {
     const stressKeywords = [
-      "stress",
-      "anxiety",
-      "worried",
-      "panic",
-      "overwhelmed",
-      "nervous",
-      "tense",
-      "pressure",
-      "can't cope",
-      "exhausted",
+      "stress", "anxiety", "worried", "panic", "overwhelmed",
+      "nervous", "tense", "pressure", "can't cope", "exhausted",
     ];
 
     const lowercaseMsg = message.toLowerCase();
@@ -240,8 +209,7 @@ export default function TherapyPage() {
         {
           type: "breathing" as const,
           title: "Breathing Exercise",
-          description:
-            "Follow calming breathing exercises with visual guidance",
+          description: "Follow calming breathing exercises with visual guidance",
         },
         {
           type: "garden" as const,
@@ -265,7 +233,6 @@ export default function TherapyPage() {
         activity: activities[Math.floor(Math.random() * activities.length)],
       };
     }
-
     return null;
   };
 
@@ -273,15 +240,12 @@ export default function TherapyPage() {
     e.preventDefault();
     const currentMessage = message.trim();
 
-    if (!currentMessage || isTyping || isChatPaused || !sessionId) {
-      return;
-    }
+    if (!currentMessage || isTyping || isChatPaused || !sessionId) return;
 
     setMessage("");
     setIsTyping(true);
 
     try {
-      // Add user message
       const userMessage: ChatMessage = {
         role: "user",
         content: currentMessage,
@@ -289,27 +253,19 @@ export default function TherapyPage() {
       };
       setMessages((prev) => [...prev, userMessage]);
 
-      // Restored: Check for stress signals
       const stressCheck = detectStressSignals(currentMessage);
       if (stressCheck) {
         setStressPrompt(stressCheck);
         setIsTyping(false);
-        // We return here so we don't call the API immediately if we're showing a game
         return; 
       }
 
-      console.log("Sending message to API...");
       const response = await sendChatMessage(sessionId, currentMessage);
-      
-      const aiResponse =
-        typeof response === "string" ? JSON.parse(response) : response;
+      const aiResponse = typeof response === "string" ? JSON.parse(response) : response;
 
       const assistantMessage: ChatMessage = {
         role: "assistant",
-        content:
-          aiResponse.response ||
-          aiResponse.message ||
-          "I'm here to support you. Could you tell me more about what's on your mind?",
+        content: aiResponse.response || aiResponse.message || "I'm here to support you.",
         timestamp: new Date(),
         metadata: {
           analysis: aiResponse.analysis,
@@ -328,8 +284,7 @@ export default function TherapyPage() {
         ...prev,
         {
           role: "assistant",
-          content:
-            "I apologize, but I'm having trouble connecting right now. Please try again in a moment.",
+          content: "I apologize, but I'm having trouble connecting right now.",
           timestamp: new Date(),
         },
       ]);
@@ -347,7 +302,6 @@ export default function TherapyPage() {
       setSessionId(newSessionId);
       router.push(`/therapy/${newSessionId}`);
     }
-
     setMessage(text);
     setTimeout(() => {
       const event = new Event("submit") as unknown as React.FormEvent;
@@ -355,7 +309,6 @@ export default function TherapyPage() {
     }, 0);
   };
 
-  // Restored: Session Completion Logic
   const handleCompleteSession = async () => {
     if (isCompletingSession) return;
     setIsCompletingSession(true);
@@ -401,15 +354,17 @@ export default function TherapyPage() {
 
   return (
     // ✅ FIXED LAYOUT:
-    // Pins content to viewport edges (below header) to handle chat scrolling correctly
-    // Replaced h-[calc...] with fixed inset-0 top-16
-    <div className="fixed inset-x-0 bottom-0 top-16 z-30 bg-background overflow-hidden">
+    // 1. fixed inset-0 top-16: Constrains height strictly between header and bottom
+    // 2. z-50 bg-background: Ensures it sits ON TOP of global footer
+    <div className="fixed inset-x-0 bottom-0 top-16 z-50 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto h-full px-4 pb-4 pt-2">
         <div className="flex h-full gap-6">
           
           {/* Sidebar */}
-          <div className="hidden md:flex w-80 flex-col border rounded-xl bg-muted/30 overflow-hidden">
-            <div className="p-4 border-b bg-background/50">
+          {/* ✅ FIXED SIDEBAR: Added h-full and min-h-0 to prevent overflow into footer */}
+          <div className="hidden md:flex w-80 flex-col h-full border rounded-xl bg-muted/30 overflow-hidden">
+            {/* Header (Non-scrolling) */}
+            <div className="p-4 border-b bg-background/50 flex-none">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold">Chat Sessions</h2>
                 <Button
@@ -433,8 +388,9 @@ export default function TherapyPage() {
               </Button>
             </div>
 
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-3">
+            {/* Scrollable List - flex-1 ensures it takes remaining space */}
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-3">
                 {sessions.map((session) => (
                   <div
                     key={session.sessionId}
@@ -449,8 +405,7 @@ export default function TherapyPage() {
                     <div className="flex items-center gap-2 mb-1">
                       <MessageSquare className="w-4 h-4 opacity-70" />
                       <span className="font-medium truncate">
-                        {session.messages[0]?.content.slice(0, 30) ||
-                          "New Chat"}
+                        {session.messages[0]?.content.slice(0, 30) || "New Chat"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
@@ -475,9 +430,10 @@ export default function TherapyPage() {
           </div>
 
           {/* Main chat area */}
-          <div className="flex-1 flex flex-col overflow-hidden bg-background rounded-xl border shadow-sm relative">
+          {/* ✅ Added h-full and min-h-0 to prevent expansion */}
+          <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-background rounded-xl border shadow-sm relative">
             
-            {/* Restored: NFT Celebration Overlay */}
+            {/* NFT Celebration Overlay */}
             <AnimatePresence>
               {showNFTCelebration && (
                 <motion.div
@@ -516,8 +472,8 @@ export default function TherapyPage() {
               )}
             </AnimatePresence>
 
-            {/* Chat header */}
-            <div className="p-4 border-b flex items-center justify-between bg-background/95 backdrop-blur z-10">
+            {/* Chat header (Fixed at top of chat card) */}
+            <div className="p-4 border-b flex items-center justify-between bg-background/95 backdrop-blur z-10 flex-none">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
                   <Bot className="w-6 h-6" />
@@ -535,7 +491,6 @@ export default function TherapyPage() {
                 </div>
               </div>
               
-              {/* Restored: Complete Session Button */}
               {messages.length >= COMPLETION_THRESHOLD && (
                 <Button
                   size="sm"
@@ -549,7 +504,7 @@ export default function TherapyPage() {
               )}
             </div>
 
-            {/* Restored: Conditional Rendering for Games vs Chat */}
+            {/* Content Area (Scrollable) */}
             {stressPrompt ? (
               <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
                 <Card className="max-w-2xl w-full border-primary/20 shadow-lg">
@@ -564,11 +519,6 @@ export default function TherapyPage() {
                         size="icon"
                         onClick={() => {
                           setStressPrompt(null);
-                          // After closing game, proceed to send the original message to AI
-                          const event = new Event("submit") as unknown as React.FormEvent;
-                          // We re-trigger submission but skip stress check by clearing message first if needed
-                          // Or simply let user continue chatting. 
-                          // Simple approach: just close modal.
                         }}
                       >
                         <X className="w-4 h-4" />
@@ -627,7 +577,7 @@ export default function TherapyPage() {
                 </Card>
               </div>
             ) : messages.length === 0 ? (
-              <div className="flex-1 flex items-center justify-center p-4 bg-muted/5">
+              <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center bg-muted/5">
                 <div className="max-w-xl w-full space-y-8">
                   <div className="text-center space-y-4">
                     <div className="relative inline-flex flex-col items-center">
@@ -730,9 +680,8 @@ export default function TherapyPage() {
             )}
 
             {/* Input area - Always visible at bottom */}
-            {/* Conditional Check: Don't show input if game is active */}
             {!stressPrompt && (
-              <div className="p-4 bg-background border-t">
+              <div className="p-4 bg-background border-t flex-none">
                 <div className="max-w-3xl mx-auto relative">
                   <form onSubmit={handleSubmit} className="relative">
                     <textarea
@@ -772,8 +721,7 @@ export default function TherapyPage() {
                     </Button>
                   </form>
                   <div className="text-[10px] text-center text-muted-foreground mt-2">
-                    AI can make mistakes. Please consult a professional for medical
-                    advice.
+                    AI can make mistakes. Please consult a professional for medical advice.
                   </div>
                 </div>
               </div>

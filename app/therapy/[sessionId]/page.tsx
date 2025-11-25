@@ -236,33 +236,37 @@ export default function TherapyPage() {
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const currentMessage = message.trim();
+  // ✅ CORE LOGIC: New isolated function to handle sending messages
+  const processMessage = async (content: string) => {
+    // Basic validation
+    if (!content || isTyping || isChatPaused || !sessionId) return;
 
-    if (!currentMessage || isTyping || isChatPaused || !sessionId) return;
-
+    // Clear UI Input immediately
     setMessage("");
     setIsTyping(true);
 
     try {
+      // 1. Add User Message to UI
       const userMessage: ChatMessage = {
         role: "user",
-        content: currentMessage,
+        content: content,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, userMessage]);
 
-      const stressCheck = detectStressSignals(currentMessage);
+      // 2. Check for Stress Signals
+      const stressCheck = detectStressSignals(content);
       if (stressCheck) {
         setStressPrompt(stressCheck);
         setIsTyping(false);
-        return; 
+        return; // Stop here if we trigger a game
       }
 
-      const response = await sendChatMessage(sessionId, currentMessage);
+      // 3. Send to API
+      const response = await sendChatMessage(sessionId, content);
       const aiResponse = typeof response === "string" ? JSON.parse(response) : response;
 
+      // 4. Add AI Message to UI
       const assistantMessage: ChatMessage = {
         role: "assistant",
         content: aiResponse.response || aiResponse.message || "I'm here to support you.",
@@ -292,21 +296,30 @@ export default function TherapyPage() {
     }
   };
 
+  // ✅ Updated Form Handler: Uses processMessage
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const currentMessage = message.trim();
+    await processMessage(currentMessage);
+  };
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  // ✅ Updated Suggestion Handler: Calls processMessage directly
   const handleSuggestedQuestion = async (text: string) => {
-    if (!sessionId) {
-      const newSessionId = await createChatSession();
-      setSessionId(newSessionId);
-      router.push(`/therapy/${newSessionId}`);
+    let currentSessionId = sessionId;
+    
+    // Ensure we have a session ID
+    if (!currentSessionId) {
+      currentSessionId = await createChatSession();
+      setSessionId(currentSessionId);
+      router.push(`/therapy/${currentSessionId}`);
     }
-    setMessage(text);
-    setTimeout(() => {
-      const event = new Event("submit") as unknown as React.FormEvent;
-      handleSubmit(event);
-    }, 0);
+
+    // Call logic directly with the text (bypassing state delay)
+    await processMessage(text);
   };
 
   const handleCompleteSession = async () => {
@@ -353,15 +366,11 @@ export default function TherapyPage() {
   }
 
   return (
-    // ✅ FIXED LAYOUT:
-    // 1. fixed inset-0 top-16: Constrains height strictly between header and bottom
-    // 2. z-50 bg-background: Ensures it sits ON TOP of global footer
     <div className="fixed inset-x-0 bottom-0 top-16 z-50 bg-background overflow-hidden">
       <div className="max-w-7xl mx-auto h-full px-4 pb-4 pt-2">
         <div className="flex h-full gap-6">
           
           {/* Sidebar */}
-          {/* ✅ FIXED SIDEBAR: Added h-full and min-h-0 to prevent overflow into footer */}
           <div className="hidden md:flex w-80 flex-col h-full border rounded-xl bg-muted/30 overflow-hidden">
             {/* Header (Non-scrolling) */}
             <div className="p-4 border-b bg-background/50 flex-none">
@@ -388,7 +397,7 @@ export default function TherapyPage() {
               </Button>
             </div>
 
-            {/* Scrollable List - flex-1 ensures it takes remaining space */}
+            {/* Scrollable List */}
             <ScrollArea className="flex-1">
               <div className="p-4 space-y-3">
                 {sessions.map((session) => (
@@ -430,7 +439,6 @@ export default function TherapyPage() {
           </div>
 
           {/* Main chat area */}
-          {/* ✅ Added h-full and min-h-0 to prevent expansion */}
           <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden bg-background rounded-xl border shadow-sm relative">
             
             {/* NFT Celebration Overlay */}
@@ -472,7 +480,7 @@ export default function TherapyPage() {
               )}
             </AnimatePresence>
 
-            {/* Chat header (Fixed at top of chat card) */}
+            {/* Chat header */}
             <div className="p-4 border-b flex items-center justify-between bg-background/95 backdrop-blur z-10 flex-none">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center ring-1 ring-primary/20">
@@ -504,7 +512,7 @@ export default function TherapyPage() {
               )}
             </div>
 
-            {/* Content Area (Scrollable) */}
+            {/* Content Area */}
             {stressPrompt ? (
               <div className="flex-1 overflow-y-auto p-4 flex items-center justify-center">
                 <Card className="max-w-2xl w-full border-primary/20 shadow-lg">
